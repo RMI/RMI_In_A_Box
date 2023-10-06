@@ -11,7 +11,7 @@ load_dotenv('.env')
 doc_folder_path = os.getenv('DOC_FOLDER_PATH')
 
 documents = []
-# Create a List of Documents from all of our files in the ./docs folder
+# Create a list of Documents from all of our files stored in doc_folder_path
 for file in os.listdir(doc_folder_path):
     if file.endswith(".pdf"):
         pdf_path = doc_folder_path  + file
