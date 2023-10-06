@@ -7,10 +7,15 @@ This repo is an experiment to generate QA chatbox for RMI reports and documents.
 Clone the repository, set up the virtual environment, and install the required packages
 
 git clone https://github.com/rosewangrmi/RMI_In_A_Box
+
 cd RMI_In_A_Box
+
 python3 -m venv .venv
+
 . .venv/bin/activate
+
 pip install -r requirements.txt
+
 
 ## Store your OpenAI API key
 
