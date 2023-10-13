@@ -1,6 +1,6 @@
 # RMI_In_A_Box
 
-This repo is an experiment to generate QA chatbox for RMI reports and documents. It is adapted from [an open source project](https://github.com/smaameri/multi-doc-chatbot#summary) that uses Langchain under the hood.
+This repo is an experiment to generate QA chatbot for RMI reports and documents. It is adapted from [an open source project](https://github.com/smaameri/multi-doc-chatbot#summary) that uses Langchain under the hood.
 
 ## Getting Started  
 
