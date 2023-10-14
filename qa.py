@@ -16,9 +16,10 @@ vectordb = Chroma(
     embedding_function=embedding)
 
 # create our Q&A chain
+num_docs = 6
 pdf_qa = ConversationalRetrievalChain.from_llm(
     ChatOpenAI(temperature=0, model_name='gpt-3.5-turbo'),
-    retriever=vectordb.as_retriever(search_kwargs={'k': 6}),
+    retriever=vectordb.as_retriever(search_kwargs={'k': num_docs}),
     return_source_documents=True,
     verbose=False
 )
@@ -46,9 +47,10 @@ while True:
     print(f"")
     print(f"{white}Answer: " + result["answer"])
     print(f"")
-    print(f"{red}From this RMI report: " + result["source_documents"][0].metadata["source"])
-    print(f"")
-    print(f"{orange}Read more about this on Page #:" + str(result["source_documents"][0].metadata["page"]+1))
-    print(f"")
-
+    for i in range(num_docs):
+        print(f"{red}From this RMI report: " + result["source_documents"][i].metadata["source"])
+        print(f"")
+        print(f"{orange}Read more about this on Page #:" + str(result["source_documents"][i].metadata["page"]+1))
+        print(f"AND")
+   
     chat_history.append((query, result["answer"]))
