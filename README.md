@@ -1,16 +1,21 @@
 # RMI_In_A_Box
 
-This repo is an experiment to generate QA chatbox for RMI reports and documents. It is adapted from [an open source project](https://github.com/smaameri/multi-doc-chatbot#summary) that uses Langchain under the hood.
+This repo is an experiment to generate QA chatbot for RMI reports and documents. It is adapted from [an open source project](https://github.com/smaameri/multi-doc-chatbot#summary) that uses Langchain under the hood.
 
 ## Getting Started  
 
 Clone the repository, set up the virtual environment, and install the required packages
 
 git clone https://github.com/rosewangrmi/RMI_In_A_Box
+
 cd RMI_In_A_Box
+
 python3 -m venv .venv
+
 . .venv/bin/activate
+
 pip install -r requirements.txt
+
 
 ## Store your OpenAI API key
 
