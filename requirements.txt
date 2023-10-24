@@ -33,3 +33,6 @@ urllib3==2.0.6
 yarl==1.9.2
 chromadb==0.4.13
 tiktoken==0.5.1
+pypdf
+openai
+Flask
