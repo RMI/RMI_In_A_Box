@@ -43,3 +43,7 @@ docker build -t box .
 docker run -p 5000:5000 -e AZURE_STORAGE_CONNECTION_STRING='string_here' -e OPENAI_API_KEY='key_here' box
 
 Then use something like a jupyter notebook to ask questions, using the code structure in test_api.py
+
+## API is now running on Azure
+
+Use code like the second example in test_api.py, after giving Hugh your IPv4 address so he can give you access
