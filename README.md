@@ -33,3 +33,10 @@ python3 create_vectordb.py
 
 ## Start chatting
 python3 qa.py
+
+## New Dockerized Version
+
+Download the repo, navigate to it, and run
+
+docker build -t box .
+docker run -p 5000:5000 -e AZURE_STORAGE_CONNECTION_STRING='string_here' -e OPENAI_API_KEY='key_here' box
