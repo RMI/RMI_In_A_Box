@@ -46,7 +46,7 @@ endpoint = "http://localhost:5000/ask"
 # The query you want to ask
 data = {
     "uid": uid,
-    "query": "Yes you do"
+    "query": "Compare your answers about midstream and downstream and summarize"
 }
 
 # Make a POST request
@@ -58,6 +58,31 @@ print(len(response.json()['chat_history']))
 
 #%%
 
-print(response.json()['chat_history'][-1])
+print(response.json()['chat_history'])
 
+# %%
+
+import requests
+import uuid
+
+# Generate a UID
+uid = str(uuid.uuid4())
+
+#%%
+
+# Define the API endpoint
+# Assuming FastAPI is running on default port 8000
+endpoint = "http://localhost:8000/ask"
+
+# The query you want to ask
+data = {
+    "uid": uid,
+    "query": "Compare your answers about midstream and downstream and summarize"
+}
+
+# Make a POST request
+response = requests.post(endpoint, json=data)
+
+# Check the response
+print(response.json())
 # %%
