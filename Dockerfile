@@ -18,7 +18,7 @@ COPY . .
 ENV AZURE_STORAGE_CONNECTION_STRING=""
 ENV OPENAI_API_KEY=""
 
-# Make port 5000 available
+# Make port 8001 available
 EXPOSE 5000
 
 # Define environment variable

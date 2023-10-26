@@ -3,4 +3,5 @@
 # data folder (chroma vectordb is too big for all RMI reports)
 data/ 
 .chat
-
+report_pdfs/
+data.zip
