@@ -36,3 +36,5 @@ tiktoken==0.5.1
 pypdf
 openai
 Flask
+docx2txt
+azure-storage-blob
