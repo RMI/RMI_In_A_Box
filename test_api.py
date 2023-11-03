@@ -41,12 +41,12 @@ uid = str(uuid.uuid4())
 #%%
 
 # Define the API endpoint
-endpoint = "http://localhost:5000/ask"
+endpoint = "https://rmibox.proudforest-0bc9422f.westus2.azurecontainerapps.io/ask"
 
 # The query you want to ask
 data = {
     "uid": uid,
-    "query": "Compare your answers about midstream and downstream and summarize"
+    "query": "How what are upstream and midstream oil and gas emissions?"
 }
 
 # Make a POST request
@@ -54,7 +54,7 @@ response = requests.post(endpoint, json=data)
 
 # Check the response
 print(response.json())
-print(len(response.json()['chat_history']))
+#print(len(response.json()['chat_history']))
 
 #%%
 

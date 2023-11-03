@@ -9,19 +9,56 @@ import os
 from azure.storage.blob import BlobServiceClient
 import zipfile
 from fastapi.responses import RedirectResponse
+from azure.identity import DefaultAzureCredential
+from azure.storage.blob import BlobServiceClient, BlobClient, ContainerClient
 
 app = FastAPI()
 
-try:
-    # Get the connection string from an environment variable
-    connect_str = os.getenv('AZURE_STORAGE_CONNECTION_STRING')
-except Exception as e:
-    print(f"Error accessing environment variable for Azure: {e}")
+# try:
+#     # Get the connection string from an environment variable
+#     connect_str = os.getenv('AZURE_STORAGE_CONNECTION_STRING')
+# except Exception as e:
+#     print(f"Error accessing environment variable for Azure: {e}")
 
+def check_managed_identity_endpoint():
+    try:
+        # Define the command to access the IMDS endpoint
+        command = "curl 'http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&resource=https://storage.azure.com/' -H 'Metadata: true'"
+        # Execute the command
+        process = subprocess.Popen(
+            command,
+            shell=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+        # Read the output and error (if any)
+        result, error = process.communicate()
+
+        if process.returncode == 0:
+            # Parse the result if the call to the endpoint was successful
+            token_response = json.loads(result)
+            print(f"IMDS endpoint response: {token_response}")
+            return token_response
+        else:
+            # Output the error if the call failed
+            print(f"Error contacting IMDS endpoint: {error}")
+            return None
+    except Exception as e:
+        print(f"Exception when trying to access IMDS endpoint: {e}")
+        return None
+
+# Call the function to check the managed identity endpoint
+token_response = check_managed_identity_endpoint()
 
 try:
     # Create a blob client using the storage account's connection string
-    blob_service_client = BlobServiceClient.from_connection_string(connect_str)
+    #blob_service_client = BlobServiceClient.from_connection_string(connect_str)
+
+    # Create a BlobServiceClient object using the DefaultAzureCredential
+    managed_identity_client_id = os.getenv("MANAGED_IDENTITY_CLIENT_ID") 
+    credential = DefaultAzureCredential(managed_identity_client_id=managed_identity_client_id)
+    blob_service_client = BlobServiceClient(account_url="https://rmibox.blob.core.windows.net", credential=credential)
+    #blob_service_client = BlobServiceClient(account_url="rmibox.blob.core.windows.net", credential=DefaultAzureCredential())
 
     # Specify the container and blob name
     container_name = "vectordb"
