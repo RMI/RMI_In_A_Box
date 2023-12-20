@@ -46,4 +46,4 @@ Then use something like a jupyter notebook to ask questions, using the code stru
 
 ## API is now running on Azure
 
-Use code like the second example in test_api.py, after giving Hugh your IPv4 address so he can give you access
+Use code like the second example in test_api.py, accessible at https://rmi-in-a-box.politemushroom-551f150f.westus2.azurecontainerapps.io/
