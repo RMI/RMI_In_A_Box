@@ -11,6 +11,8 @@ import zipfile
 from fastapi.responses import RedirectResponse
 from azure.identity import DefaultAzureCredential
 from azure.storage.blob import BlobServiceClient, BlobClient, ContainerClient
+import subprocess
+from typing import List
 
 app = FastAPI()
 
@@ -48,16 +50,18 @@ def check_managed_identity_endpoint():
         return None
 
 # Call the function to check the managed identity endpoint
-token_response = check_managed_identity_endpoint()
+#token_response = check_managed_identity_endpoint()
 
 try:
     # Create a blob client using the storage account's connection string
     #blob_service_client = BlobServiceClient.from_connection_string(connect_str)
 
     # Create a BlobServiceClient object using the DefaultAzureCredential
-    managed_identity_client_id = os.getenv("MANAGED_IDENTITY_CLIENT_ID") 
+    #managed_identity_client_id = os.getenv("MANAGED_IDENTITY_CLIENT_ID")
+    managed_identity_client_id = "dfc6149e-ebc6-4635-b354-123b6a9cb744"
     credential = DefaultAzureCredential(managed_identity_client_id=managed_identity_client_id)
-    blob_service_client = BlobServiceClient(account_url="https://rmibox.blob.core.windows.net", credential=credential)
+    #credential = DefaultAzureCredential()
+    blob_service_client = BlobServiceClient(account_url="https://rmiinbox.blob.core.windows.net", credential=credential)
     #blob_service_client = BlobServiceClient(account_url="rmibox.blob.core.windows.net", credential=DefaultAzureCredential())
 
     # Specify the container and blob name
@@ -66,7 +70,6 @@ try:
 
     # Get a blob client for downloading
     blob_client = blob_service_client.get_blob_client(container=container_name, blob=blob_name)
-
 
     # Download the vectordb and save it locally
     local_path = "./data.zip"
@@ -84,14 +87,25 @@ except Exception as e:
 # Unzip the downloaded data
 with zipfile.ZipFile(local_path, 'r') as zip_ref:
     zip_ref.extractall("./data")
+print("Unzipping completed.")
+
+# List files in the data directory
+data_dir = './data'
+print(f"Contents of {data_dir}:")
+for filename in os.listdir(data_dir):
+    print(filename)
 
 # Create vector store
+#from dotenv import load_dotenv
+#load_dotenv('/Users/hugh/Library/CloudStorage/OneDrive-RMI/Documents/RMI/envs/azure_storage.env')
+#embedding = OpenAIEmbeddings(openai_api_key=os.getenv('OPENAI_API_KEY'))
 embedding = OpenAIEmbeddings()
-persist_directory = "./data"
+persist_directory = "./data/data"
 vectordb = Chroma(
     persist_directory=persist_directory,
     embedding_function=embedding
 )
+print("Vector store initialized.")
 
 # create Q&A chain
 num_docs = 6
@@ -112,9 +126,13 @@ class AskRequest(BaseModel):
     uid: str
     query: str
 
+class Source(BaseModel):
+    source: str
+    page: int
+
 class AskResponse(BaseModel):
     answer: str
-    sources: list
+    sources: List[Source]
 
 # Redirect the default URL to the OpenAPI docs
 @app.get("/", include_in_schema=False)
@@ -143,18 +161,35 @@ def ask(request: AskRequest):
     # Ask the question and get response
     result = pdf_qa({"question": query, "chat_history": chat_history})
     answer = result["answer"]
-    sources = [{"source": doc.metadata["source"], "page": doc.metadata["page"]+1} for doc in result["source_documents"]]
+    #sources = [{"source": doc.metadata["source"], "page": doc.metadata["page"]+1} for doc in result["source_documents"]]
+    sources = [Source(source=doc.metadata["source"], page=doc.metadata["page"]+1) for doc in result["source_documents"]]
 
     # Update the chat history
     chat_history.append((query, answer))
     sessions[uid] = chat_history
 
-    return {
-        "answer": answer,
-        "sources": sources,
-    }
+    print(f"Response ready to be sent. Sources: {sources}")
+    return AskResponse(answer=answer, sources=sources)
 
 # Asynchronous entry point for FastAPI
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000, debug=True)
+
+
+#%%
+
+# from fastapi import Request
+# import json
+
+# # Create an AskRequest object
+# request = AskRequest(uid="55", query="Explain downstream oil emissions")
+
+# # Call the endpoint function directly
+# response = ask(request)
+
+# print(response.answer)
+# print(response.sources)
+# print(len(response.sources))
+
+#%%

@@ -1,0 +1,49 @@
+name: Deploy
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    steps:
+      - name: Checkout CMS
+        uses: actions/checkout@v4
+        with:
+          repository: RMI/wastemap-cms
+          path: ode-rmi-cms
+          token: "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"
+
+      - name: Azure CLI login
+        uses: azure/login@v1
+        with:
+          client-id: "dfc6149e-ebc6-4635-b354-123b6a9cb744"
+          tenant-id: "8ed8a585-d8e6-4b00-b9cc-d370783559f6"
+          subscription-id: "9140b1a6-2e73-491d-8ae5-6678d725c52b"
+          allow-no-subscriptions: false
+
+      - name: Login to ACR
+        run: az acr login --name wastemap
+
+      - name: Build and Push Docker Images
+        run: |
+            docker build \
+            --build-arg="AZURE_STORAGE_CONNECTION_STRING=DefaultEndpointsProtocol=https;AccountName=wmapstorage;AccountKey=6apiinj6kkUH7RcwOGBqTgrGM+1uYhmai7SnuMylXhDfTgrDcsLpsYYsXFhC6CN4k8ZG27001xN1+AStOW7+9Q==;EndpointSuffix=core.windows.net" \
+            --build-arg="OPENAI_API_KEY=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" \
+            --build-arg="MANAGED_IDENTITY_CLIENT_ID=dfc6149e-ebc6-4635-b354-123b6a9cb744" \
+            -t wastemap.azurecr.io/eg-frontend:dev-${{ github.sha }} ode-rmi
+          docker push wastemap.azurecr.io/eg-cms:dev-${{ github.sha }}
+
+      - name: Deploy CMS on Container Apps
+        uses: azure/container-apps-deploy-action@v1
+        with:
+          disableTelemetry: true
+          containerAppName: eg-cms-dev
+          containerAppEnvironment: wastemap-dev
+          resourceGroup: RMI-SP-CAI-WMAP-DEV
+          imageToDeploy: wastemap.azurecr.io/eg-cms:dev-${{ github.sha }}
+          location: westus2

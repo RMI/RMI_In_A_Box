@@ -12,7 +12,7 @@ frozenlist==1.4.0
 idna==3.4
 jsonpatch==1.33
 jsonpointer==2.4
-langchain==0.0.310
+langchain ==0.0.316
 langsmith==0.0.43
 marshmallow==3.20.1
 multidict==6.0.4
@@ -34,7 +34,7 @@ yarl==1.9.2
 chromadb==0.4.13
 tiktoken==0.5.1
 pypdf
-openai
+openai==0.28.1
 #Flask
 docx2txt
 azure-storage-blob

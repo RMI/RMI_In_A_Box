@@ -10,6 +10,7 @@ COPY requirements.txt .
 # Install Python packages specified in requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 RUN pip install azure-storage-blob
+#RUN apt-get update && apt-get install -y curl
 
 # Copy the current directory content into the container
 COPY . .

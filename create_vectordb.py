@@ -95,6 +95,8 @@ zip_filename = "data.zip"
 with zipfile.ZipFile(zip_filename, 'w', zipfile.ZIP_DEFLATED) as zipf:
     zipdir(dir_path, zipf)
 
+#%%
+
 # Specify the destination container name
 dest_container_name = "vectordb"
 
@@ -108,7 +110,7 @@ dest_blob_client = blob_service_client.get_blob_client(container=dest_container_
 with open(zip_filename, "rb") as data:
     dest_blob_client.upload_blob(data, overwrite=True)
 
-# Remove the zip file after uploading
-os.remove(zip_filename)
+# # Remove the zip file after uploading
+# os.remove(zip_filename)
 
 # %%
