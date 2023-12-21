@@ -13,6 +13,7 @@ from azure.identity import DefaultAzureCredential
 from azure.storage.blob import BlobServiceClient, BlobClient, ContainerClient
 import subprocess
 from typing import List
+from azure.keyvault.secrets import SecretClient
 
 app = FastAPI()
 
@@ -57,8 +58,7 @@ try:
     #blob_service_client = BlobServiceClient.from_connection_string(connect_str)
 
     # Create a BlobServiceClient object using the DefaultAzureCredential
-    #managed_identity_client_id = os.getenv("MANAGED_IDENTITY_CLIENT_ID")
-    managed_identity_client_id = "dfc6149e-ebc6-4635-b354-123b6a9cb744"
+    managed_identity_client_id = os.getenv("MANAGED_IDENTITY_CLIENT_ID")
     credential = DefaultAzureCredential(managed_identity_client_id=managed_identity_client_id)
     #credential = DefaultAzureCredential()
     blob_service_client = BlobServiceClient(account_url="https://rmiinbox.blob.core.windows.net", credential=credential)
@@ -99,7 +99,15 @@ for filename in os.listdir(data_dir):
 #from dotenv import load_dotenv
 #load_dotenv('/Users/hugh/Library/CloudStorage/OneDrive-RMI/Documents/RMI/envs/azure_storage.env')
 #embedding = OpenAIEmbeddings(openai_api_key=os.getenv('OPENAI_API_KEY'))
-embedding = OpenAIEmbeddings()
+try:
+    key_vault_uri = "https://rmibox.vault.azure.net/"
+    client = SecretClient(vault_url=key_vault_uri, credential=credential)
+    secret_name = "openai-api"
+    retrieved_secret = client.get_secret(secret_name)
+    print(f"Retrieved secret: {retrieved_secret.value}")
+    embedding = OpenAIEmbeddings(openai_api_key=retrieved_secret.value)
+except Exception as e:
+    print(f"Error retrieving secret: {e}")
 persist_directory = "./data/data"
 vectordb = Chroma(
     persist_directory=persist_directory,
@@ -110,10 +118,10 @@ print("Vector store initialized.")
 # create Q&A chain
 num_docs = 6
 pdf_qa = ConversationalRetrievalChain.from_llm(
-    ChatOpenAI(temperature=0, model_name='gpt-3.5-turbo'),
+    ChatOpenAI(temperature=0, model_name='gpt-3.5-turbo', openai_api_key=retrieved_secret.value),
     retriever=vectordb.as_retriever(search_kwargs={'k': num_docs}),
     return_source_documents=True,
-    verbose=False
+    verbose=False,
 )
 
 #chat_history = []

@@ -40,3 +40,4 @@ docx2txt
 azure-storage-blob
 fastapi
 azure-identity
+azure-keyvault-secrets
