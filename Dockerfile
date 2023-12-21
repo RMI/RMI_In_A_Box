@@ -10,6 +10,7 @@ COPY requirements.txt .
 # Install Python packages specified in requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 RUN pip install azure-storage-blob
+#RUN apt-get update && apt-get install -y curl
 
 # Copy the current directory content into the container
 COPY . .
@@ -18,11 +19,11 @@ COPY . .
 ENV AZURE_STORAGE_CONNECTION_STRING=""
 ENV OPENAI_API_KEY=""
 
-# Make port 8001 available
-EXPOSE 5000
+# Make port 8000 available
+EXPOSE 8000
 
 # Define environment variable
-ENV FLASK_APP=qa_api.py
+# Not necessary unless you are using Flask environment variables
 
 # Run the application when the container launches
-CMD ["./start.sh"]
+CMD ["uvicorn", "qa_fastapi:app", "--host", "0.0.0.0", "--port", "8000"]

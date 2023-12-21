@@ -1,3 +1,0 @@
-data/ 
-report_pdfs/
-data.zip

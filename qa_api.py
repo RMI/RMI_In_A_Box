@@ -63,7 +63,7 @@ pdf_qa = ConversationalRetrievalChain.from_llm(
     verbose=False
 )
 
-chat_history = []
+#chat_history = []
 
 # Use a dictionary as a mock in-memory database
 sessions = {}
@@ -79,23 +79,25 @@ def ask():
     if not uid:
         return jsonify({"error": "UID number not provided"}), 400
 
+    # Create a dictionary entry for the user if it doesn't exist
     if uid not in sessions:
         sessions[uid] = []
-
+    
+    # Get the chat history for the user
     chat_history = sessions[uid]
 
+    # Ask the question and get response
     result = pdf_qa({"question": query, "chat_history": chat_history})
-    
     answer = result["answer"]
     sources = [{"source": doc.metadata["source"], "page": doc.metadata["page"]+1} for doc in result["source_documents"]]
 
+    # Update the chat history
     chat_history.append((query, answer))
     sessions[uid] = chat_history
 
     return jsonify({
         "answer": answer,
         "sources": sources,
-        "chat_history": chat_history
     })
 
 
