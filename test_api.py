@@ -14,7 +14,7 @@ endpoint = "https://rmi-in-a-box.politemushroom-551f150f.westus2.azurecontainera
 
 # The query you want to ask
 data = {
-    "uid": "55", #uid,
+    "uid": uid,
     "query": "Explain downstream oil emissions"
 }
 
