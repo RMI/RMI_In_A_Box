@@ -46,4 +46,4 @@ Then use something like a jupyter notebook to ask questions, using the code stru
 
 ## API is now running on Azure
 
-Use code like the example in test_api.py, accessible at https://rmi-in-a-box.politemushroom-551f150f.westus2.azurecontainerapps.io/. If you set your uid only once and continue to use the same one, it should remember your conversation history. Just put your question in, run the cell, retype a new question, run the cell again, etc. There is one current bug -- it returns source documents, but seems to only return one multiple times instead of returning multiple. 
+Use code like the example in test_api.py, accessible at https://rmi-in-a-box.politemushroom-551f150f.westus2.azurecontainerapps.io/. If you set your uid only once and continue to use the same one, it should remember your conversation history. Just put your question in, run the cell, retype a new question, run the cell again, etc.
