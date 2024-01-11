@@ -2,6 +2,9 @@
 
 This repo is an experiment to generate QA chatbot for RMI reports and documents. It is adapted from [an open source project](https://github.com/smaameri/multi-doc-chatbot#summary) that uses Langchain under the hood.
 
+Questions can be asked here:
+https://box-frontend.politemushroom-551f150f.westus2.azurecontainerapps.io
+
 ## Getting Started  
 
 Clone the repository, set up the virtual environment, and install the required packages
