@@ -1,91 +1,45 @@
-from fastapi import FastAPI, HTTPException
+#%%
+
 from pydantic import BaseModel
 import os
-from azure.storage.blob import BlobServiceClient
-import zipfile
-from fastapi.responses import RedirectResponse
-from azure.identity import DefaultAzureCredential
-from azure.storage.blob import BlobServiceClient
+from dotenv import load_dotenv
+from langchain_openai import ChatOpenAI, OpenAI
+from langchain.vectorstores import Chroma
+from langchain.embeddings import OpenAIEmbeddings
 from typing import List
-from azure.keyvault.secrets import SecretClient
-from langchain_openai import ChatOpenAI
-from langchain_community.vectorstores import Chroma
-from langchain_community.embeddings import OpenAIEmbeddings
-from typing import List
+from langchain.chains import ConversationalRetrievalChain
 from langchain.memory import ConversationSummaryBufferMemory
+from langchain.chains import LLMChain
 from langchain.prompts import (
     ChatPromptTemplate,
+    HumanMessagePromptTemplate,
+    MessagesPlaceholder,
+    SystemMessagePromptTemplate,
 )
 from langchain_core.runnables import RunnableLambda, RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
 from langchain.prompts.prompt import PromptTemplate
 from operator import itemgetter
 from langchain.schema import format_document
-from langchain_core.messages import get_buffer_string
+from langchain_core.messages import AIMessage, HumanMessage, get_buffer_string
+from langchain_core.runnables import RunnableParallel
+import logging
 
-# Initialize FastAPI
-app = FastAPI()
 
-try:
-    # Create a blob client using the storage account's connection string
-    #blob_service_client = BlobServiceClient.from_connection_string(connect_str)
+#%%
 
-    # Create a BlobServiceClient object using the DefaultAzureCredential
-    managed_identity_client_id = os.getenv("MANAGED_IDENTITY_CLIENT_ID")
-    credential = DefaultAzureCredential(managed_identity_client_id=managed_identity_client_id)
-    #credential = DefaultAzureCredential()
-    blob_service_client = BlobServiceClient(account_url="https://rmiinbox.blob.core.windows.net", credential=credential)
-    #blob_service_client = BlobServiceClient(account_url="rmibox.blob.core.windows.net", credential=DefaultAzureCredential())
+# Load environment variables
+env_path = '/Users/hugh/Library/CloudStorage/OneDrive-RMI/Documents/RMI/envs/azure_storage.env'
+load_dotenv(dotenv_path=env_path)
+openai_api_key = os.getenv('OPENAI_API_KEY')
 
-    # Specify the container and blob name
-    container_name = "vectordb"
-    blob_name = "data.zip"
-
-    # Get a blob client for downloading
-    blob_client = blob_service_client.get_blob_client(container=container_name, blob=blob_name)
-
-    # Download the vectordb and save it locally
-    local_path = "./data.zip"
-    with open(local_path, "wb") as f:
-        data = blob_client.download_blob()
-        data.readinto(f)
-
-    file_size = os.path.getsize(local_path)
-    print(f"Downloaded file size: {file_size} bytes")
-
-except Exception as e:
-    print(f"Error while handling blob: {e}")
-
-# Unzip the downloaded data
-with zipfile.ZipFile(local_path, 'r') as zip_ref:
-    zip_ref.extractall("./data")
-print("Unzipping completed.")
-
-# List files in the data directory
-data_dir = './data'
-print(f"Contents of {data_dir}:")
-for filename in os.listdir(data_dir):
-    print(filename)
-
-# Create vector store
-#from dotenv import load_dotenv
-#load_dotenv('/Users/hugh/Library/CloudStorage/OneDrive-RMI/Documents/RMI/envs/azure_storage.env')
-#embedding = OpenAIEmbeddings(openai_api_key=os.getenv('OPENAI_API_KEY'))
-try:
-    key_vault_uri = "https://rmibox.vault.azure.net/"
-    client = SecretClient(vault_url=key_vault_uri, credential=credential)
-    secret_name = "openai-api"
-    retrieved_secret = client.get_secret(secret_name)
-    print(f"Retrieved secret: {retrieved_secret.value}")
-    embedding = OpenAIEmbeddings(openai_api_key=retrieved_secret.value)
-except Exception as e:
-    print(f"Error retrieving secret: {e}")
-persist_directory = "./data/data"
-vectordb = Chroma(
-    persist_directory=persist_directory,
-    embedding_function=embedding
-)
+# Initialize vector store
+persist_directory = "./data"
+vectordb = Chroma(persist_directory=persist_directory, embedding_function=OpenAIEmbeddings(openai_api_key=openai_api_key))
 print("Vector store initialized.")
+
+# # Use a dictionary as a mock in-memory database
+# sessions = {}
 
 class MemoryManager:
     def __init__(self, llm, retriever, max_token_limit=4000):
@@ -152,7 +106,7 @@ class MemoryManager:
         return self.memories[uid]
 
 # Initialize LLM and retriever
-llm = ChatOpenAI(temperature=0, model_name='gpt-3.5-turbo', openai_api_key=retrieved_secret.value)
+llm = ChatOpenAI(temperature=0, model_name='gpt-3.5-turbo', openai_api_key=openai_api_key)
 num_docs = 5
 retriever=vectordb.as_retriever(search_kwargs={'k': num_docs})
 
@@ -172,22 +126,9 @@ class AskResponse(BaseModel):
     answer: str
     sources: List[Source]
 
-# Redirect the default URL to the OpenAPI docs
-@app.get("/", include_in_schema=False)
-def home():
-    return RedirectResponse(url="/docs")
-
-# Endpoint for asking a question
-@app.post("/ask", response_model=AskResponse)
 def ask(request: AskRequest):
     uid = request.uid
     query = request.query
-
-    if not query:
-        raise HTTPException(status_code=400, detail="Query not provided")
-
-    if not uid:
-        raise HTTPException(status_code=400, detail="UID not provided")
 
     memory, chain = memory_manager.get_memory_for_user(uid)
     memory.load_memory_variables({})
@@ -198,35 +139,22 @@ def ask(request: AskRequest):
         result = chain.invoke(input)
     except Exception as e:
         print(f"Error while asking question: {e}")
-        raise HTTPException(status_code=500, detail="Error with Q&A model, try rewording the question or using a new UID")
     answer = result["answer"].content
     #sources = [{"source": doc.metadata["source"], "page": doc.metadata["page"]+1} for doc in result["source_documents"]]
     sources = [Source(source=doc.metadata["source"].split('/')[-1], page=doc.metadata["page"]+1) for doc in result["docs"]]
 
     memory.save_context(input, {"answer": answer})
 
-    print(f"Response ready to be sent. Sources: {sources}")
     return AskResponse(answer=answer, sources=sources)
 
-# Asynchronous entry point for FastAPI
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000, debug=True)
-
-
 #%%
 
-# from fastapi import Request
-# import json
+ask(AskRequest(uid="65", query="Explain upstream and midstream oil and gas emissions"))
 
-# # Create an AskRequest object
-# request = AskRequest(uid="55", query="Explain downstream oil emissions")
 
-# # Call the endpoint function directly
-# response = ask(request)
+# %%
 
-# print(response.answer)
-# print(response.sources)
-# print(len(response.sources))
+# for i in range(1000):
+#     ask(AskRequest(uid="5", query="Explain emissions from dam building"))
 
-#%%
+# %%
