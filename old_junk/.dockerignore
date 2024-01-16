@@ -2,5 +2,3 @@ data/
 report_pdfs/
 data.zip
 .DS_Store
-.github/
-app.log

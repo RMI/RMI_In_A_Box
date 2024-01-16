@@ -6,3 +6,4 @@ data/
 report_pdfs/
 data.zip
 .DS_Store
+app.log
