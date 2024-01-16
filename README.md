@@ -5,7 +5,7 @@ This repo is an experiment to generate QA chatbot for RMI reports and documents.
 Questions can be asked here:
 https://box-frontend.politemushroom-551f150f.westus2.azurecontainerapps.io
 
-## Getting Started  
+## If you want to run it locally
 
 Clone the repository, set up the virtual environment, and install the required packages
 
@@ -13,40 +13,15 @@ git clone https://github.com/rosewangrmi/RMI_In_A_Box
 
 cd RMI_In_A_Box
 
-python3 -m venv .venv
-
-. .venv/bin/activate
-
-pip install -r requirements.txt
-
-
-## Store your OpenAI API key
-
-Create a .env file, and save the openai api key
+Create a .env file, and save your openai api key
 
 OPENAI_API_KEY =
 
+pip install -r requirements.txt
+pip install doc2text docx2txt
 
-## Provide the path to documents in the .env file
+Open create_vectordb_local.py and change the load_dotenv path on line 12 to where you saved your .env file. Change line 14 doc_folder_path to where you have the pdf source documents saved.
 
-DOC_FOLDER_PATH =
+Run create_vectordb_local.py. You might need to alter the persist_directory path on line 42.
 
-## Generate vectordb
-python3 create_vectordb.py
-
-## Start chatting
-python3 qa.py
-
-## New Dockerized Version
-
-Download the repo, navigate to it, and run
-
-docker build -t box .
-
-docker run -p 5000:5000 -e AZURE_STORAGE_CONNECTION_STRING='string_here' -e OPENAI_API_KEY='key_here' box
-
-Then use something like a jupyter notebook to ask questions, using the code structure in test_api.py
-
-## API is now running on Azure
-
-Use code like the example in test_api.py, accessible at https://rmi-in-a-box.politemushroom-551f150f.westus2.azurecontainerapps.io/. If you set your uid only once and continue to use the same one, it should remember your conversation history. Just put your question in, run the cell, retype a new question, run the cell again, etc.
+Open qa_local.py, change the .env file path on line 32, and run it. Make sure the persist_directory path on line 37 matches the previous one from create_vectordb_local.py line 42. Questions are asked by running line 152.
