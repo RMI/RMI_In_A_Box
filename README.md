@@ -19,7 +19,7 @@ OPENAI_API_KEY =
 
 pip install -r requirements.txt
 
-pip install doc2text docx2txt
+pip install doc2text docx2txt (there might be one or two more, apologies)
 
 Open create_vectordb_local.py and change the load_dotenv path on line 12 to where you saved your .env file. Change line 14 doc_folder_path to where you have the pdf source documents saved.
 
