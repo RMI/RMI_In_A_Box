@@ -18,6 +18,7 @@ Create a .env file, and save your openai api key
 OPENAI_API_KEY =
 
 pip install -r requirements.txt
+
 pip install doc2text docx2txt
 
 Open create_vectordb_local.py and change the load_dotenv path on line 12 to where you saved your .env file. Change line 14 doc_folder_path to where you have the pdf source documents saved.
